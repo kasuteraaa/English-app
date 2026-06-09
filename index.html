@@ -9874,25 +9874,35 @@
             const t = appData.global.theme === 'dark' ? 'checked' : '';
             const limit = appData.global.timeLimit;
             
-            // Googleログインの状態をチェックしてUIを出し分ける
-            let googleAuthHtml = '';
+            // ログイン状態をチェックしてUIを出し分ける
+            let authHtml = '';
             if (window.googleUser) {
-                googleAuthHtml = `
-                    <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <img class="w-10 h-10 rounded-full shadow-sm" src="${window.googleUser.photoURL || ''}" alt="Google icon">
+                authHtml = `
+                    <div class="flex items-center gap-3 bg-slate-100 dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700 mb-3">
+                        <img class="w-10 h-10 rounded-full shadow-sm bg-slate-200" src="${window.googleUser.photoURL || 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text x=%2250%%22 y=%2250%%22 style=%22dominant-baseline:central;text-anchor:middle;font-size:80px;%22>🦉</text></svg>'}" alt="icon">
                         <div class="flex-1 min-w-0">
                             <div class="text-xs font-bold text-slate-400">ログイン中</div>
-                            <div class="text-sm font-extrabold truncate text-slate-800 dark:text-slate-100">${window.googleUser.displayName || 'ユーザー'}</div>
+                            <div class="text-sm font-extrabold truncate text-slate-800 dark:text-slate-100">${window.googleUser.email || 'ユーザー'}</div>
                         </div>
                         <button onclick="window.logoutFromGoogle()" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg active:scale-95 transition-all">ログアウト</button>
                     </div>
                 `;
             } else {
-                googleAuthHtml = `
-                    <button onclick="window.loginWithGoogle()" class="w-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 p-3.5 rounded-xl font-bold flex justify-center items-center gap-2 text-sm shadow-sm hover:border-blue-500 active:scale-95 transition-all">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.113-5.111 4.113-3.418 0-6.19-2.772-6.19-6.19 0-3.417 2.772-6.19 6.19-6.19 1.483 0 2.844.524 3.93 1.39l2.906-2.906C18.99 2.062 15.824 1 12.24 1 6.033 1 1 6.033 1 12.24s4.033 11.24 11.24 11.24c6.452 0 11.24-4.514 11.24-11.24 0-.741-.09-1.424-.24-1.955H12.24z"/></svg>
-                        Googleアカウントでログイン
-                    </button>
+                authHtml = `
+                    <div class="space-y-2 mb-4 bg-white dark:bg-slate-800 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
+                        <div class="text-xs font-bold text-slate-500 mb-1">メールアドレスでログイン / 登録</div>
+                        <input type="email" id="auth-email-input" placeholder="メールアドレス" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 text-sm outline-none focus:border-blue-500">
+                        <input type="password" id="auth-password-input" placeholder="パスワード(6文字以上)" class="w-full p-2 border border-slate-300 dark:border-slate-600 rounded bg-slate-50 dark:bg-slate-700 text-sm outline-none focus:border-blue-500">
+                        <div class="flex gap-2 mt-2">
+                            <button onclick="window.loginWithEmailPass(false)" class="flex-1 bg-indigo-500 text-white text-xs font-bold py-2 rounded shadow hover:bg-indigo-600 active:scale-95 transition-all">ログイン</button>
+                            <button onclick="window.loginWithEmailPass(true)" class="flex-1 bg-teal-500 text-white text-xs font-bold py-2 rounded shadow hover:bg-teal-600 active:scale-95 transition-all">新規登録</button>
+                        </div>
+                        <div class="text-center text-xs text-slate-400 my-2">または</div>
+                        <button onclick="window.loginWithGoogle()" class="w-full bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 p-2.5 rounded font-bold flex justify-center items-center gap-2 text-sm shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 active:scale-95 transition-all">
+                            <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#EA4335" d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.113-5.111 4.113-3.418 0-6.19-2.772-6.19-6.19 0-3.417 2.772-6.19 6.19-6.19 1.483 0 2.844.524 3.93 1.39l2.906-2.906C18.99 2.062 15.824 1 12.24 1 6.033 1 1 6.033 1 12.24s4.033 11.24 11.24 11.24c6.452 0 11.24-4.514 11.24-11.24 0-.741-.09-1.424-.24-1.955H12.24z"/></svg>
+                            Googleでログイン
+                        </button>
+                    </div>
                 `;
             }
 
@@ -9912,17 +9922,11 @@
                         </select>
                     </div>
                     <div class="bg-slate-50 dark:bg-slate-700 p-3 rounded-xl border border-blue-200 dark:border-blue-800">
-                        <div class="font-bold text-sm mb-2 text-blue-600 dark:text-blue-400">☁️ クラウド同期 (Googleアカウント)</div>
-                        <div class="space-y-3">
-                            ${googleAuthHtml}
-                            <div class="grid grid-cols-2 gap-2">
-                                <button onclick="syncToCloud()" class="bg-blue-500 text-white text-xs font-bold py-3 rounded-lg shadow hover:bg-blue-600 active:scale-95 transition-all">☁️ クラウドへ保存</button>
-                                <button onclick="syncFromCloud()" class="bg-green-500 text-white text-xs font-bold py-3 rounded-lg shadow hover:bg-green-600 active:scale-95 transition-all">📥 クラウドから復元</button>
-                            </div>
-                        </div>
-                        <div class="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-bold leading-tight">
-                            ※「保存」を押すと現在のデータをクラウドにバックアップします。<br>
-                            ※「復元」を押すとクラウドのデータで現在の端末を上書きします。
+                        <div class="font-bold text-sm mb-2 text-blue-600 dark:text-blue-400">☁️ クラウド同期</div>
+                        ${authHtml}
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="syncToCloud()" class="bg-blue-500 text-white text-xs font-bold py-3 rounded-lg shadow hover:bg-blue-600 active:scale-95 transition-all">☁️ クラウドへ保存</button>
+                            <button onclick="syncFromCloud()" class="bg-green-500 text-white text-xs font-bold py-3 rounded-lg shadow hover:bg-green-600 active:scale-95 transition-all">📥 クラウドから復元</button>
                         </div>
                     </div>
                 </div>
@@ -11588,7 +11592,7 @@
    <!-- ==================== クラウド同期用モジュール ==================== -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Firebaseの設定情報（ご提供いただいた情報）
@@ -11660,6 +11664,44 @@
                     }
                 }
             });
+
+            // メールアドレスとパスワードでログイン・登録
+            window.loginWithEmailPass = async function(isSignUp) {
+                const email = document.getElementById('auth-email-input').value.trim();
+                const password = document.getElementById('auth-password-input').value.trim();
+                
+                if (!email || !password) {
+                    window.showModal("メールアドレスとパスワードを入力してください。", "alert", () => openSettings(), "エラー");
+                    return;
+                }
+                
+                // 許可リストチェック (管理者保護)
+                if (!MY_ALLOWED_EMAILS.includes(email)) {
+                    window.showModal("このアプリは管理者専用に保護されています。<br>許可されたメールアドレス以外は登録・ログインできません。", "alert", () => openSettings(), "アクセスブロック");
+                    return;
+                }
+
+                try {
+                    let result;
+                    if (isSignUp) {
+                        result = await createUserWithEmailAndPassword(auth, email, password);
+                        window.showModal(`アカウントを作成しました！<br>${email} でログインしました。`, "alert", () => { closeModal(); openSettings(); });
+                    } else {
+                        result = await signInWithEmailAndPassword(auth, email, password);
+                        window.showModal(`おかえりなさい！<br>${email} でログインしました。`, "alert", () => { closeModal(); openSettings(); });
+                    }
+                    window.googleUser = result.user;
+                } catch (error) {
+                    console.error("メール認証エラー:", error);
+                    let msg = "認証に失敗しました。";
+                    if (error.code === 'auth/email-already-in-use') msg = "このメールアドレスは既に登録されています。ログインをお試しください。";
+                    else if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') msg = "パスワードが間違っているか、アカウントが見つかりません。";
+                    else if (error.code === 'auth/weak-password') msg = "パスワードは6文字以上で設定してください。";
+                    else msg += `<br>(${error.code})`;
+                    
+                    window.showModal(msg, "alert", () => openSettings(), "エラー");
+                }
+            };
 
             // Googleアカウントでサインインする関数
             window.loginWithGoogle = async function() {
