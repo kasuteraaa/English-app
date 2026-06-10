@@ -11783,9 +11783,10 @@
             };
 
             // クラウドへ現在の端末データをバックアップ保存
+            // クラウドへ現在の端末データをバックアップ保存
             window.syncToCloud = async function() {
                 if (!window.googleUser) {
-                    window.showModal("クラウドに保存するには、先に設定（⚙️）から「Googleアカウントでログイン」を行ってください。", "alert");
+                    window.showModal("クラウドに保存するには、先に設定（⚙️）からログインを行ってください。", "alert");
                     return;
                 }
                 
@@ -11796,14 +11797,22 @@
                     window.showModal("クラウドへの保存（バックアップ）が完了しました！<br>これで他の端末でもこのデータを復元できます。", "alert");
                 } catch (error) {
                     console.error("保存エラー:", error);
-                    window.showModal("データの保存に失敗しました。接続状況を確認してください。", "alert");
+                    let msg = "データの保存に失敗しました。<br>";
+                    if (error.code === 'permission-denied') {
+                        msg += "<br><strong>【原因】データベースのアクセス権限がありません。</strong><br>Firebaseコンソールから「Firestore Database」の「ルール」タブを開き、読み書きを許可する設定に変更してください。";
+                    } else if (error.code === 'not-found') {
+                        msg += "<br><strong>【原因】データベースが存在しません。</strong><br>Firebaseコンソールから「Firestore Database」を作成してください。";
+                    } else {
+                        msg += `<br>詳細: ${error.message} (${error.code})`;
+                    }
+                    window.showModal(msg, "alert", null, "保存エラー");
                 }
             };
 
             // クラウドから最新データをロードして端末上書き
             window.syncFromCloud = async function() {
                 if (!window.googleUser) {
-                    window.showModal("クラウドからデータを復元するには、先に設定（⚙️）から「Googleアカウントでログイン」を行ってください。", "alert");
+                    window.showModal("クラウドからデータを復元するには、先に設定（⚙️）からログインを行ってください。", "alert");
                     return;
                 }
                 
@@ -11818,16 +11827,27 @@
                                 location.reload();
                             });
                         } else {
-                            window.showModal("クラウド上にセーブデータが見つかりませんでした。<br>先に現在の正しい進捗の入った端末で「クラウドへ保存」を行ってください。", "alert");
+                            window.showModal("クラウド上にセーブデータが見つかりませんでした。<br>先に現在の正しい進捗の入った端末で「☁️ クラウドへ保存」を行ってください。", "alert");
                         }
                     } catch (error) {
                         console.error("復元エラー:", error);
-                        window.showModal("データの復元に失敗しました。", "alert");
+                        let msg = "データの復元に失敗しました。<br>";
+                        if (error.code === 'permission-denied') {
+                            msg += "<br><strong>【原因】データベースのアクセス権限がありません。</strong><br>Firebaseコンソールから「Firestore Database」の「ルール」タブを開き、読み書きを許可する設定に変更してください。";
+                        } else if (error.code === 'not-found') {
+                            msg += "<br><strong>【原因】データベースが存在しません。</strong><br>Firebaseコンソールから「Firestore Database」を作成してください。";
+                        } else {
+                            msg += `<br>詳細: ${error.message} (${error.code})`;
+                        }
+                        window.showModal(msg, "alert", null, "復元エラー");
                     }
                 });
             };
         } else {
             // Firebase情報が未設定のときのダミー機能
+            window.loginWithEmailPass = () => {
+                window.showModal("Firebaseの設定情報を書き換えてください。", "alert");
+            };
             window.loginWithGoogle = () => {
                 window.showModal("Firebaseの設定情報を書き換えてください。", "alert");
             };
